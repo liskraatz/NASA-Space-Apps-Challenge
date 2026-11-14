@@ -1,0 +1,481 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    padding: clamp(1rem, 4vw, 3rem);
+    background: #f3f6f3;
+    color: #1f2c25;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    width: min(100%, 1200px);
+    margin: 0 auto;
+    padding: 1.25rem clamp(1rem, 3vw, 2rem);
+    border: 1px solid #dce5dd;
+    border-left: 5px solid #d96b35;
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: 0 0.25rem 1rem rgb(31 44 37 / 6%);
+}
+
+header h2 {
+    margin-bottom: 0.25rem;
+    color: #275b43;
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    letter-spacing: 0.04em;
+}
+
+header h3 {
+    color: #5b6b61;
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.content {
+    display: grid;
+    gap: 1.25rem;
+    width: min(100%, 1200px);
+    margin: 1.5rem auto 0;
+}
+
+.result-container {
+    overflow: hidden;
+    border: 1px solid #dce5dd;
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: 0 0.25rem 1rem rgb(31 44 37 / 6%);
+}
+
+.tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0 1rem;
+    border-bottom: 1px solid #dce5dd;
+}
+
+.tabs label {
+    min-width: 6rem;
+    padding: 0.85rem 1rem 0.7rem;
+    border-bottom: 3px solid transparent;
+    color: #53665a;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.tabs label:hover {
+    color: #275b43;
+}
+
+.view-tab-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+.panels {
+    min-height: clamp(280px, 55vh, 620px);
+}
+
+.panel {
+    display: none;
+    min-height: clamp(280px, 55vh, 620px);
+}
+
+.map-panel {
+    place-items: center;
+    overflow: hidden;
+    background-color: #e7eee8;
+    background-image:
+        linear-gradient(30deg, transparent 48%, rgb(39 91 67 / 7%) 49%, rgb(39 91 67 / 7%) 51%, transparent 52%),
+        linear-gradient(150deg, transparent 48%, rgb(39 91 67 / 7%) 49%, rgb(39 91 67 / 7%) 51%, transparent 52%);
+    background-size: 4rem 4rem;
+    color: #53665a;
+    text-align: center;
+}
+
+.map-panel p {
+    padding: 0.75rem 1rem;
+    border-radius: 0.4rem;
+    background: rgb(255 255 255 / 85%);
+}
+
+#view-map:checked ~ .panels .map-panel,
+#view-data:checked ~ .panels .data-panel {
+    display: block;
+}
+
+#view-map:checked ~ .panels .map-panel {
+    display: grid;
+}
+
+#view-data:focus-visible ~ .tabs label[for="view-data"],
+#view-map:focus-visible ~ .tabs label[for="view-map"] {
+    outline: 3px solid rgb(39 91 67 / 25%);
+    outline-offset: -3px;
+}
+
+#view-map:checked ~ .tabs label[for="view-map"],
+#view-data:checked ~ .tabs label[for="view-data"] {
+    border-bottom-color: #d96b35;
+    color: #275b43;
+}
+
+.filter-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 1rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border: 1px solid #dce5dd;
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: 0 0.25rem 1rem rgb(31 44 37 / 6%);
+}
+
+.filter {
+    display: grid;
+    align-content: start;
+    gap: 0.45rem;
+}
+
+.filter label {
+    color: #35483c;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.filter > input,
+.filter > select,
+.year-range-inputs input,
+.location-panel input[type="text"] {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #cbd7ce;
+    border-radius: 0.4rem;
+    background: #fff;
+    color: #1f2c25;
+    font: inherit;
+}
+
+.filter > input:focus,
+.filter > select:focus,
+.year-range-inputs input:focus,
+.location-panel input[type="text"]:focus {
+    border-color: #275b43;
+    outline: 3px solid rgb(39 91 67 / 18%);
+}
+
+.date-filter-group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    align-content: start;
+    align-self: stretch;
+    gap: 0.75rem;
+    min-width: 0;
+    padding-left: 1rem;
+    border-left: 1px solid #dce5dd;
+}
+
+.search-submit {
+    align-self: center;
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: #d96b35;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.search-submit:hover {
+    background: #bf5728;
+}
+
+.search-submit:focus-visible {
+    outline: 3px solid rgb(217 107 53 / 30%);
+    outline-offset: 2px;
+}
+
+.filter-label {
+    color: #35483c;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.optional-label {
+    color: #718078;
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+.year-range-inputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.quick-date-filters {
+    display: flex;
+    grid-column: 1 / -1;
+    gap: 0.35rem;
+}
+
+.quick-date-filters button {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid #cbd7ce;
+    border-radius: 0.4rem;
+    background: #f3f6f3;
+    color: #275b43;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.quick-date-filters button:hover {
+    border-color: #275b43;
+    background: #e7eee8;
+}
+
+.quick-date-filters button:focus-visible {
+    outline: 3px solid rgb(39 91 67 / 25%);
+    outline-offset: 2px;
+}
+
+.location-filter {
+    min-width: 0;
+    border: 0;
+}
+
+.location-filter legend {
+    margin-bottom: 0.45rem;
+    color: #35483c;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.location-tab-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+.location-tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid #cbd7ce;
+}
+
+.location-tabs label {
+    flex: 1;
+    padding: 0.6rem 0.35rem;
+    border-bottom: 3px solid transparent;
+    color: #53665a;
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.location-tabs label:hover {
+    color: #275b43;
+}
+
+#location-search:checked ~ .location-tabs label[for="location-search"],
+#location-saved:checked ~ .location-tabs label[for="location-saved"] {
+    border-bottom-color: #d96b35;
+    color: #275b43;
+    font-weight: 600;
+}
+
+#location-search:focus-visible ~ .location-tabs label[for="location-search"],
+#location-saved:focus-visible ~ .location-tabs label[for="location-saved"] {
+    outline: 3px solid rgb(39 91 67 / 25%);
+    outline-offset: 2px;
+}
+
+.location-panel {
+    display: none;
+    gap: 0.65rem;
+    padding-top: 0.75rem;
+}
+
+.location-panels {
+    min-height: 9.5rem;
+}
+
+.location-panel p,
+.saved-hint {
+    color: #53665a;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+#location-search:checked ~ .location-panels .search-panel,
+#location-saved:checked ~ .location-panels .saved-panel {
+    display: grid;
+}
+
+.location-panel button {
+    min-height: 2.75rem;
+    padding: 0.6rem 0.85rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: #275b43;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.location-panel button:hover {
+    background: #1d4834;
+}
+
+.location-search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.75rem;
+    gap: 0.5rem;
+}
+
+.location-search-row .save-location-button {
+    display: grid;
+    width: 2.75rem;
+    min-height: 2.75rem;
+    place-items: center;
+    padding: 0.6rem;
+}
+
+.save-location-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.current-location-link {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 0.4rem;
+    min-height: auto;
+    padding: 0.2rem 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #275b43;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+.location-panel .current-location-link:hover {
+    background: transparent;
+    color: #1d4834;
+}
+
+.current-location-link svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+.saved-location-list {
+    display: grid;
+    gap: 0.5rem;
+    max-height: 7rem;
+    overflow-y: auto;
+}
+
+.saved-location-list label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #35483c;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.saved-location-list input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #275b43;
+}
+
+@media (max-width: 760px) {
+    .filter-container {
+        grid-template-columns: 1fr;
+    }
+
+    .date-filter-group {
+        padding-top: 1rem;
+        padding-left: 0;
+        border-top: 1px solid #dce5dd;
+        border-left: 0;
+    }
+
+    .search-submit {
+        justify-self: end;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        align-items: flex-start;
+        padding-block: 1rem;
+    }
+
+    .filter-container {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-date-filters button {
+        flex: 1;
+    }
+}
