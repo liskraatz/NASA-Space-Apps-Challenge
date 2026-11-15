@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 // Get current year
 $now = new DateTime();
 $current_year = $now->format("Y");
@@ -19,6 +21,9 @@ $month = filter_input(INPUT_POST, "month") ?? 1;
 
 $message = "";
 
+if (!isset($_SESSION["saved_locations"]) || !is_array($_SESSION["saved_locations"])) {
+    $_SESSION["saved_locations"] = [];
+}
 
 // Statistics
 $high_month = "";
@@ -35,7 +40,7 @@ $anomaly = "";
 
 
 // Validate user input only after the form is submitted.
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search") {
     if ($start_year === null || $start_year === false) {
         $message = "Start year cannot be empty.";
     } elseif ($start_year < 2000 || $start_year > $current_year) {
@@ -50,19 +55,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 // Save location
-if($action === 'save_location'){
-    $saved_location = [];
-
-    if(empty($saved_location)){
-        $message = "No saved locations yet. Save a location from the Search tab to see it here.";
-    }else{
-        $message = "";
-        $saved_location = $location;
+if ($action === "save_location") {
+    if (empty($location)) {
+        $message = "Enter a location before saving it.";
+    } elseif (!in_array($location, $_SESSION["saved_locations"], true)) {
+        $_SESSION["saved_locations"][] = $location;
     }
 }
 
+if (isset($_POST["remove_saved_location"])) {
+    $saved_location_key = array_search($_POST["remove_saved_location"], $_SESSION["saved_locations"], true);
+    if ($saved_location_key !== false) {
+        unset($_SESSION["saved_locations"][$saved_location_key]);
+    }
+}
+
+if (isset($_POST["use_saved_location"]) && in_array($_POST["use_saved_location"], $_SESSION["saved_locations"], true)) {
+    $location = $_POST["use_saved_location"];
+}
 
 
+/*
 // Connect to Flask
 $url = "http://";
 
@@ -98,7 +111,7 @@ if($httpCode === 200 && $response){
     echo "Error connecting to Flask. (HTTP Status: $httpCode)";
 }
 
-
+*/
 
 ?>
 
@@ -123,8 +136,8 @@ if($httpCode === 200 && $response){
             <form class="filter-container" method="post" action="" id="form">
                 <fieldset class="filter location-filter">
                     <legend>Location</legend>
-                    <input class="location-tab-input" type="radio" id="location-search" name="location_mode" value="search" checked>
-                    <input class="location-tab-input" type="radio" id="location-saved" name="location_mode" value="saved">
+                    <input class="location-tab-input" type="radio" id="location-search" name="location_mode" value="search" <?php echo filter_input(INPUT_POST, "location_mode") !== "saved" || isset($_POST["use_saved_location"]) ? "checked" : ""; ?>>
+                    <input class="location-tab-input" type="radio" id="location-saved" name="location_mode" value="saved" <?php echo filter_input(INPUT_POST, "location_mode") === "saved" && !isset($_POST["use_saved_location"]) ? "checked" : ""; ?>>
 
                     <div class="location-tabs">
                         <label for="location-search">Search</label>
@@ -135,7 +148,7 @@ if($httpCode === 200 && $response){
                         <div class="location-panel search-panel">
                             <label for="location-search-input">Search for a location</label>
                             <div class="location-search-row">
-                                <input id="location-search-input" name="location" type="text" placeholder="City, region, or coordinates" value="<?php echo $location ?>">
+                                <input id="location-search-input" name="location" type="text" placeholder="City, region, or coordinates" value="<?php echo htmlspecialchars($location ?? "", ENT_QUOTES, "UTF-8"); ?>">
                                 <button class="save-location-button" type="submit" name="action" value="save_location">
                                     <svg aria-hidden="true" viewBox="0 0 24 24">
                                         <path d="M6 3.75h12a1 1 0 0 1 1 1v15l-7-4.5-7 4.5v-15a1 1 0 0 1 1-1Z"></path>
@@ -157,25 +170,23 @@ if($httpCode === 200 && $response){
                                 <input type="hidden" name="longitude" id="longitude">
 
                                 
-                                <button class="save-location-button" type="submit" name="action" value="save_location">
-                                <svg aria-hidden="true" viewBox="0 0 24 24">
-                                    <path d="M6 3.75h12a1 1 0 0 1 1 1v15l-7-4.5-7 4.5v-15a1 1 0 0 1 1-1Z"></path>
-                                </svg>
-                                <span class="visually-hidden">Save location</span>
-                                </button>
-
-                                
                             </div>
                         </div>
                         <div class="location-panel saved-panel">
                             <span class="filter-label" id="saved-location-label">Saved locations</span>
-                            <div class="saved-location-list" id="saved-location-list" role="group" aria-labelledby="saved-location-label"></div>
-                            <p class="saved-hint"><?php echo $message;
-                                foreach($saved_location as saved){
-                                    echo $saved_location."<br>;
-                                }
-
-                            ?></p>
+                            <div class="saved-location-list" id="saved-location-list" role="group" aria-labelledby="saved-location-label">
+                                <?php foreach ($_SESSION["saved_locations"] as $saved_location): ?>
+                                    <div class="saved-location-item">
+                                        <button class="saved-location-option" type="submit" name="use_saved_location" value="<?php echo htmlspecialchars($saved_location, ENT_QUOTES, "UTF-8"); ?>">
+                                            <?php echo htmlspecialchars($saved_location, ENT_QUOTES, "UTF-8"); ?>
+                                        </button>
+                                        <button class="remove-saved-location" type="submit" name="remove_saved_location" value="<?php echo htmlspecialchars($saved_location, ENT_QUOTES, "UTF-8"); ?>" aria-label="Remove <?php echo htmlspecialchars($saved_location, ENT_QUOTES, "UTF-8"); ?> from saved locations">&times;</button>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php if (empty($_SESSION["saved_locations"])): ?>
+                                <p class="saved-hint">No saved locations yet. Save a location from the Search tab to see it here.</p>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </fieldset>
@@ -231,10 +242,28 @@ if($httpCode === 200 && $response){
                         <h4>Lowest fire activity month: <?php echo $low_month?></h4>
                         <h4>Highest fire activity year: <?php echo $high_year?></h4>
                         <h4>Lowest fire activity year: <?php echo $low_year?></h4>
-                        <h4>Highest fire activity difference: <?php echo $high_diff?></h4>
-                        <h4>Lowest fire activity difference: <?php echo $low_diff?></h4>
+                        <h4>Highest fire activity difference
+                            <button class="stat-tooltip" type="button" aria-label="More information about highest fire activity difference" aria-describedby="tooltip-highest-difference">
+                                ?
+                                <span class="stat-tooltip-text" id="tooltip-highest-difference" role="tooltip">The month with the highest difference in fire activty between between years of selected range.</span>
+                            </button>:
+                            <?php echo $high_diff?>
+                        </h4>
+                        <h4>Lowest fire activity difference
+                            <button class="stat-tooltip" type="button" aria-label="More information about lowest fire activity difference" aria-describedby="tooltip-lowest-difference">
+                                ?
+                                <span class="stat-tooltip-text" id="tooltip-lowest-difference" role="tooltip">The month with the lowest difference in fire activty between between years of selected range.</span>
+                            </button>:
+                            <?php echo $low_diff?>
+                        </h4>
                         <h4>Year fire activity average: <?php echo $year_average?></h4>
-                        <h4>Sensor Anomaly: <?php echo $anomaly?> </h4>
+                        <h4>Sensor anomaly
+                            <button class="stat-tooltip" type="button" aria-label="More information about sensor anomaly" aria-describedby="tooltip-sensor-anomaly">
+                                ?
+                                <span class="stat-tooltip-text" id="tooltip-sensor-anomaly" role="tooltip">The percentage of mismatch between VIIRS and MODIS activity detection.</span>
+                            </button>:
+                            <?php echo $anomaly?>
+                        </h4>
                         <button class="csv-download-button" type="button">Download CSV</button>
                     </div>
                 </div>

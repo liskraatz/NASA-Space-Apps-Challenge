@@ -4,9 +4,12 @@
     padding: 0;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     min-height: 100vh;
-    padding: clamp(1rem, 4vw, 3rem);
     background: #f3f6f3;
     color: #1f2c25;
     font-family: Arial, Helvetica, sans-serif;
@@ -15,14 +18,15 @@ body {
 header {
     display: flex;
     align-items: center;
-    width: min(100%, 1200px);
-    margin: 0 auto;
-    padding: 1.25rem clamp(1rem, 3vw, 2rem);
-    border: 1px solid #dce5dd;
-    border-left: 5px solid #d96b35;
-    border-radius: 0.75rem;
+    width: 100%;
+    padding: 1.25rem 0;
+    border-radius: 0;
     background: #fff;
-    box-shadow: 0 0.25rem 1rem rgb(31 44 37 / 6%);
+}
+
+header > div {
+    width: 80%;
+    margin: 0 auto;
 }
 
 header h2 {
@@ -42,7 +46,9 @@ header h3 {
 .content {
     display: grid;
     gap: 1.25rem;
-    width: min(100%, 1200px);
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
     margin: 1.5rem auto 0;
 }
 
@@ -123,6 +129,57 @@ header h3 {
     color: #35483c;
     font-size: 0.95rem;
     line-height: 1.45;
+}
+
+.stat-tooltip {
+    position: relative;
+    display: inline-grid;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0 0.2rem;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #718078;
+    border-radius: 50%;
+    background: #f3f6f3;
+    color: #275b43;
+    cursor: help;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.stat-tooltip:focus-visible {
+    outline: 3px solid rgb(39 91 67 / 25%);
+    outline-offset: 2px;
+}
+
+.stat-tooltip-text {
+    position: absolute;
+    z-index: 2;
+    bottom: calc(100% + 0.5rem);
+    left: 50%;
+    width: min(16rem, calc(100vw - 3rem));
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.4rem;
+    background: #1f2c25;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: left;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+.stat-tooltip:hover .stat-tooltip-text,
+.stat-tooltip:focus .stat-tooltip-text {
+    visibility: visible;
+    opacity: 1;
 }
 
 .csv-download-button {
@@ -220,7 +277,7 @@ header h3 {
     align-items: start;
     align-content: start;
     align-self: stretch;
-    gap: 0.75rem;
+    gap: 1rem;
     min-width: 0;
     padding-left: 1rem;
     border-left: 1px solid #dce5dd;
@@ -478,31 +535,51 @@ header h3 {
 }
 
 .saved-hint {
-    display: none;
+    display: block;
     padding: 0.65rem 0.75rem;
     border: 1px dashed #cbd7ce;
     border-radius: 0.4rem;
     background: #f3f6f3;
 }
 
-.saved-location-list:empty + .saved-hint {
-    display: block;
+.saved-location-option {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    text-align: left;
 }
 
-.saved-location-list label {
+.saved-location-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    color: #35483c;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 400;
+    gap: 0.4rem;
+    min-width: 0;
 }
 
-.saved-location-list input {
-    width: 1rem;
-    height: 1rem;
-    accent-color: #275b43;
+.location-panel .remove-saved-location {
+    display: grid;
+    flex: 0 0 2rem;
+    width: 2rem;
+    min-width: 2rem;
+    min-height: 2rem;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #dce5dd;
+    border-radius: 50%;
+    background: #f3f6f3;
+    color: #bf5728;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.location-panel .remove-saved-location:hover {
+    background: #bf5728;
+    color: #fff;
+}
+
+.remove-saved-location:focus-visible {
+    outline: 3px solid rgb(217 107 53 / 30%);
+    outline-offset: 2px;
 }
 
 .error-msg{
