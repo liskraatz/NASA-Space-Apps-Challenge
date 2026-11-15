@@ -17,38 +17,25 @@ $start_year = filter_input(INPUT_POST, "year_start", FILTER_VALIDATE_INT);
 $end_year_input = filter_input(INPUT_POST, "year_end");
 $end_year = ($end_year_input === null || $end_year_input === "") ? null : filter_var($end_year_input, FILTER_VALIDATE_INT);
 
-$month = filter_input(INPUT_POST, "month") ?? 1;
+$month = filter_input(INPUT_POST, "month");
 
 $message = "";
+$result = null;
 
 if (!isset($_SESSION["saved_locations"]) || !is_array($_SESSION["saved_locations"])) {
     $_SESSION["saved_locations"] = [];
 }
 
-// Statistics
-$high_month = "";
-$low_month = "";
-$high_year = "";
-$low_year = "";
-$low_diff = "";
-$high_diff = "";
-$year_average = "";
-$anomaly = "";
-
-
-// Get current location
-
-
 // Validate user input only after the form is submitted.
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search") {
     if ($start_year === null || $start_year === false) {
         $message = "Start year cannot be empty.";
-    } elseif ($start_year < 2000 || $start_year > $current_year) {
-        $message = "Data is only available from 2000 to " . $current_year . ".";
+    } elseif ($start_year < 2003 || $start_year > $current_year) {
+        $message = "Data is only available from 2003 to " . $current_year . ".";
     } elseif ($end_year === false) {
         $message = "End year must be a valid year.";
-    } elseif ($end_year !== null && ($end_year < 2000 || $end_year > $current_year)) {
-        $message = "Data is only available from 2000 to " . $current_year . ".";
+    } elseif ($end_year !== null && ($end_year < 2003 || $end_year > $current_year)) {
+        $message = "Data is only available from 2003 to " . $current_year . ".";
     } elseif ($end_year !== null && $start_year > $end_year) {
         $message = "Start year cannot be after end year.";
     }
@@ -74,44 +61,67 @@ if (isset($_POST["use_saved_location"]) && in_array($_POST["use_saved_location"]
     $location = $_POST["use_saved_location"];
 }
 
+if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search" && $message === "") {
+    $location_text = trim((string) ($location ?? ""));
+    if (preg_match('/^\s*(-?(?:\d+(?:\.\d*)?|\.\d+))\s*,\s*(-?(?:\d+(?:\.\d*)?|\.\d+))\s*$/', $location_text, $matches)) {
+        $latitude = (float) $matches[1];
+        $longitude = (float) $matches[2];
+    }
 
-/*
-// Connect to Flask
-$url = "http://";
+    if ($latitude === false || $longitude === false) {
+        $message = "Enter valid latitude and longitude coordinates.";
+    } elseif ($latitude === null || $longitude === null) {
+        $message = "Use current location or enter coordinates like 34.05, -118.25. City-name lookup is not configured.";
+    } elseif ($latitude < -90 || $latitude > 90 || $longitude < -180 || $longitude > 180) {
+        $message = "Latitude must be between -90 and 90 and longitude between -180 and 180.";
+    } else {
+        if ($location_text === "") {
+            $location = $latitude . ", " . $longitude;
+        }
 
-$data = json_encode([
-    'location' => $location,
-    'latitude' => $latitude,
-    'longitude' => $longitude,
-    'month' => $month,
-    'start-year' => $start_year,
-    'end-year' => $end_year
-]);
+        $payload = json_encode([
+            "latitude" => $latitude,
+            "longitude" => $longitude,
+            "year_start" => $start_year,
+            "year_end" => $end_year,
+            "month" => $month,
+            "radius_km" => 50
+        ]);
+        if ($payload === false) {
+            $message = "Could not encode the search request.";
+        } elseif (!function_exists("curl_init")) {
+            $message = "PHP cURL is not enabled. Enable the cURL extension to contact Flask.";
+        } else {
+            $api_url = getenv("FLASK_API_URL") ?: "http://127.0.0.1:5000/api/fire-search";
+            $curl = curl_init($api_url);
+            curl_setopt_array($curl, [
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_CONNECTTIMEOUT => 3,
+                CURLOPT_TIMEOUT => 30
+            ]);
+            $response = curl_exec($curl);
+            $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $curl_error = curl_error($curl);
+            unset($curl);
 
-// Send request with cURL
-$curl = curl_init($url);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_PORT, true);
-curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-curl_setopt($curl, CURLOPT_HTTPHEADER, [
-    'Content-Type: application/json', 
-    'Content-Length: '.strlen($data)
-]);
-
-// Execute request and close connection
-$response = curl_exec($curl);
-$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-// Closes automatically -> curl_close() is deprecated
-
-// Decode and use json response from python
-if($httpCode === 200 && $response){
-    $result = json_decode($response, true);
-    echo "Python response: ".htmlspecialchars($result['processed_text']);
-}else{
-    echo "Error connecting to Flask. (HTTP Status: $httpCode)";
+            if ($response === false) {
+                $message = "Could not connect to Flask: " . $curl_error;
+            } else {
+                $api_response = json_decode($response, true);
+                if ($http_code !== 200 || !is_array($api_response)) {
+                    $message = is_array($api_response) && isset($api_response["error"])
+                        ? $api_response["error"]
+                        : "Flask returned an invalid response (HTTP " . $http_code . ").";
+                } else {
+                    $result = $api_response;
+                }
+            }
+        }
+    }
 }
-
-*/
 
 ?>
 
@@ -148,7 +158,7 @@ if($httpCode === 200 && $response){
                         <div class="location-panel search-panel">
                             <label for="location-search-input">Search for a location</label>
                             <div class="location-search-row">
-                                <input id="location-search-input" name="location" type="text" placeholder="City, region, or coordinates" value="<?php echo htmlspecialchars($location ?? "", ENT_QUOTES, "UTF-8"); ?>">
+                                <input id="location-search-input" name="location" type="text" placeholder="Coordinates: latitude, longitude" value="<?php echo htmlspecialchars($location ?? "", ENT_QUOTES, "UTF-8"); ?>">
                                 <button class="save-location-button" type="submit" name="action" value="save_location">
                                     <svg aria-hidden="true" viewBox="0 0 24 24">
                                         <path d="M6 3.75h12a1 1 0 0 1 1 1v15l-7-4.5-7 4.5v-15a1 1 0 0 1 1-1Z"></path>
@@ -194,8 +204,8 @@ if($httpCode === 200 && $response){
                     <div class="filter year-range-filter">
                         <span class="filter-label">Year</span>
                         <div class="year-range-inputs">
-                            <input id="year-from" name="year_start" type="number" step="1" placeholder="From" value="<?php echo $start_year ?>">
-                            <input id="year-to" name="year_end" type="number" step="1" placeholder="To (Optional)" min="2001" max="2026" value="<?php echo $end_year ?>">
+                            <input id="year-from" name="year_start" type="number" step="1" min="2003" max="<?php echo htmlspecialchars($current_year, ENT_QUOTES, "UTF-8"); ?>" placeholder="From" value="<?php echo $start_year ?>">
+                            <input id="year-to" name="year_end" type="number" step="1" placeholder="To (Optional)" min="2003" max="<?php echo htmlspecialchars($current_year, ENT_QUOTES, "UTF-8"); ?>" value="<?php echo $end_year ?>">
                         </div>
                     </div>
                     <div class="filter">
@@ -235,36 +245,55 @@ if($httpCode === 200 && $response){
 
                 <div class="panels">
                     <div class="panel map-panel">
-                        <p>Fire activity map will appear here</p>
+                        <?php if ($result !== null): ?>
+                            <div>
+                                <p>
+                                    Results within <?php echo (int) $result["location"]["radius_km"]; ?> km of
+                                    <?php echo htmlspecialchars((string) $result["location"]["latitude"], ENT_QUOTES, "UTF-8"); ?>,
+                                    <?php echo htmlspecialchars((string) $result["location"]["longitude"], ENT_QUOTES, "UTF-8"); ?>
+                                </p>
+                                <p>
+                                    <?php echo (int) $result["summary"]["cells_matched"]; ?> grid cells matched;
+                                    <?php echo number_format((float) $result["summary"]["total_count"], 1); ?> estimated detections.
+                                </p>
+                            </div>
+                        <?php else: ?>
+                            <p>Search by current location or latitude/longitude coordinates to see fire activity.</p>
+                        <?php endif; ?>
                     </div>
                     <div class="panel data-panel">
-                        <h4>Highest fire activity month: <?php echo $high_month?></h4>
-                        <h4>Lowest fire activity month: <?php echo $low_month?></h4>
-                        <h4>Highest fire activity year: <?php echo $high_year?></h4>
-                        <h4>Lowest fire activity year: <?php echo $low_year?></h4>
-                        <h4>Highest fire activity difference
-                            <button class="stat-tooltip" type="button" aria-label="More information about highest fire activity difference" aria-describedby="tooltip-highest-difference">
-                                ?
-                                <span class="stat-tooltip-text" id="tooltip-highest-difference" role="tooltip">The month with the highest difference in fire activty between between years of selected range.</span>
-                            </button>:
-                            <?php echo $high_diff?>
-                        </h4>
-                        <h4>Lowest fire activity difference
-                            <button class="stat-tooltip" type="button" aria-label="More information about lowest fire activity difference" aria-describedby="tooltip-lowest-difference">
-                                ?
-                                <span class="stat-tooltip-text" id="tooltip-lowest-difference" role="tooltip">The month with the lowest difference in fire activty between between years of selected range.</span>
-                            </button>:
-                            <?php echo $low_diff?>
-                        </h4>
-                        <h4>Year fire activity average: <?php echo $year_average?></h4>
-                        <h4>Sensor anomaly
-                            <button class="stat-tooltip" type="button" aria-label="More information about sensor anomaly" aria-describedby="tooltip-sensor-anomaly">
-                                ?
-                                <span class="stat-tooltip-text" id="tooltip-sensor-anomaly" role="tooltip">The percentage of mismatch between VIIRS and MODIS activity detection.</span>
-                            </button>:
-                            <?php echo $anomaly?>
-                        </h4>
-                        <button class="csv-download-button" type="button">Download CSV</button>
+                        <?php if ($result !== null): ?>
+                            <?php $summary = $result["summary"]; ?>
+                            <h4>Total estimated detections: <?php echo number_format((float) $summary["total_count"], 1); ?></h4>
+                            <h4>Highest activity month: <?php echo htmlspecialchars($summary["highest_month"]["label"] ?? "No data", ENT_QUOTES, "UTF-8"); ?></h4>
+                            <h4>Lowest activity month: <?php echo htmlspecialchars($summary["lowest_month"]["label"] ?? "No data", ENT_QUOTES, "UTF-8"); ?></h4>
+                            <h4>Highest activity year: <?php echo htmlspecialchars((string) ($summary["highest_year"] ?? "No data"), ENT_QUOTES, "UTF-8"); ?></h4>
+                            <h4>Lowest activity year: <?php echo htmlspecialchars((string) ($summary["lowest_year"] ?? "No data"), ENT_QUOTES, "UTF-8"); ?></h4>
+                            <h4>Average per year with data: <?php echo number_format((float) $summary["average_per_year"], 1); ?></h4>
+                            <?php if (empty($result["monthly"])): ?>
+                                <p>No fire detections matched this location and date range.</p>
+                            <?php else: ?>
+                                <div class="results-table-wrap">
+                                    <table class="results-table">
+                                        <thead>
+                                            <tr><th>Year</th><th>Month</th><th>Estimated detections</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($result["monthly"] as $row): ?>
+                                                <tr>
+                                                    <td><?php echo (int) $row["year"]; ?></td>
+                                                    <td><?php echo htmlspecialchars($row["month_name"], ENT_QUOTES, "UTF-8"); ?></td>
+                                                    <td><?php echo number_format((float) $row["count"], 1); ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <p>Submit a location and date range to view fire activity summaries.</p>
+                        <?php endif; ?>
+                        <button class="csv-download-button" type="button" <?php echo ($result !== null && !empty($result["monthly"])) ? "" : "disabled"; ?>>Download CSV</button>
                     </div>
                 </div>
             </section>
@@ -277,9 +306,34 @@ if($httpCode === 200 && $response){
             const form = document.getElementById("form");
             const submitBtn = document.getElementById("submit");
             const locationLink = document.getElementById("current-location-link");
+            const locationInput = document.getElementById("location-search-input");
             const latitudeInput = document.getElementById("latitude");
             const longitudeInput = document.getElementById("longitude");
             const locationStatus = document.getElementById("location-status");
+            const csvDownloadButton = document.querySelector(".csv-download-button");
+
+            locationInput.addEventListener("input", function() {
+                latitudeInput.value = "";
+                longitudeInput.value = "";
+            });
+
+            csvDownloadButton.addEventListener("click", function() {
+                const table = document.querySelector(".results-table");
+                if (!table) {
+                    return;
+                }
+                const rows = Array.from(table.rows).map(function(row) {
+                    return Array.from(row.cells).map(function(cell) {
+                        return '"' + cell.textContent.trim().replace(/"/g, '""') + '"';
+                    }).join(",");
+                });
+                const file = new Blob([rows.join("\r\n")], { type: "text/csv;charset=utf-8" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(file);
+                link.download = "fire-activity.csv";
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
 
             locationLink.addEventListener("click", function(event) {
                 event.preventDefault();

@@ -123,6 +123,32 @@ header h3 {
     padding: clamp(1rem, 3vw, 1.5rem);
 }
 
+.results-table-wrap {
+    max-height: 24rem;
+    margin-top: 1rem;
+    overflow: auto;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.results-table th,
+.results-table td {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid #e5ebe6;
+}
+
+.results-table th {
+    position: sticky;
+    top: 0;
+    background: #f3f6f3;
+    color: #35483c;
+}
+
 .data-panel h4 {
     padding: 0.75rem 0;
     border-bottom: 1px solid #e5ebe6;
@@ -197,6 +223,11 @@ header h3 {
 
 .csv-download-button:hover {
     background: #1d4834;
+}
+
+.csv-download-button:disabled {
+    background: #9aa79f;
+    cursor: not-allowed;
 }
 
 .csv-download-button:focus-visible {
