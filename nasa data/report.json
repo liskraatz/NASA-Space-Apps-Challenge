@@ -1,0 +1,79 @@
+{
+  "data_through": "2026-11-13",
+  "cell_degrees": 0.25,
+  "first_year": 2003,
+  "viirs_start": "2012-02",
+  "snpp_last_full_month": "2026-10",
+  "detections": {
+    "MODIS": {
+      "read": 4932215,
+      "not_fire": 220554,
+      "low_confidence": 416081,
+      "kept": 4295541
+    },
+    "NOAA20": {
+      "read": 9802291,
+      "not_fire": 970953,
+      "low_confidence": 396661,
+      "kept": 8434384
+    },
+    "SNPP": {
+      "read": 14541779,
+      "not_fire": 1593483,
+      "low_confidence": 585210,
+      "kept": 12363086
+    }
+  },
+  "static_source_locations": 138073,
+  "grid_cells_with_fire": 29092,
+  "hotspots_in_download_file": 13972064,
+  "harmonization": {
+    "modis_to_snpp": 4.467159283390203,
+    "noaa20_to_snpp": 1.0085917046509445,
+    "cells_with_own_ratio": 12776,
+    "blocks_with_own_ratio": 528,
+    "cell_ratio_p10": 2.0849085891686787,
+    "cell_ratio_p90": 7.204855590885003,
+    "snpp_outage_months": [
+      "2022-08",
+      "2024-07",
+      "2026-07"
+    ]
+  },
+  "validation": {
+    "modis_to_snpp": {
+      "trained_on": "2012-02 to 2019-06",
+      "tested_on": "2019-07 to 2026-10",
+      "months_tested": 85,
+      "correlation": 0.992,
+      "total_predicted_vs_actual": 0.929,
+      "monthly_error_pct": {
+        "unharmonized": 78.2,
+        "harmonized": 10.6
+      },
+      "local_yearly_error_pct": {
+        "unharmonized": 75.1,
+        "one_ratio_everywhere": 28.7,
+        "ratio_per_grid_cell": 18.3,
+        "block_years_tested": 2281
+      }
+    },
+    "noaa20_to_snpp": {
+      "trained_on": "2018-04 to 2022-07",
+      "tested_on": "2022-08 to 2026-10",
+      "months_tested": 48,
+      "correlation": 0.999,
+      "total_predicted_vs_actual": 1.003,
+      "monthly_error_pct": {
+        "unharmonized": 2.6,
+        "harmonized": 2.1
+      },
+      "local_yearly_error_pct": {
+        "unharmonized": 5.7,
+        "one_ratio_everywhere": 5.8,
+        "ratio_per_grid_cell": 5.8,
+        "block_years_tested": 1382
+      }
+    }
+  }
+}
