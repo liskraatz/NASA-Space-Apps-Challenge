@@ -601,10 +601,16 @@ header h3 {
     background: #281a13;
 }
 
-.error-msg{
+.error-msg {
     margin-top: 1em;
-    color:#a02a2a;
+    color: #a02a2a;
+    font-size: 0.85rem;
     font-weight: bold;
+    line-height: 1.4;
+}
+
+.location-panel p.error-msg {
+    color: #a02a2a;
 }
 
 @media (max-width: 760px) {

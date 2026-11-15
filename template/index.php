@@ -20,6 +20,7 @@ $end_year = ($end_year_input === null || $end_year_input === "") ? null : filter
 $month = filter_input(INPUT_POST, "month") ?? 1;
 
 $message = "";
+$location_message = "";
 
 if (!isset($_SESSION["saved_locations"]) || !is_array($_SESSION["saved_locations"])) {
     $_SESSION["saved_locations"] = [];
@@ -54,10 +55,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search") {
     }
 }
 
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search") {
+    if ($latitude === null || $latitude === false || $longitude === null || $longitude === false) {
+        $location_message = "Location can't be empty.";
+    }
+}
+
 // Save location
 if ($action === "save_location") {
     if (empty($location)) {
-        $message = "Enter a location before saving it.";
+        $location_message = "Enter a location before saving it.";
     } elseif (!in_array($location, $_SESSION["saved_locations"], true)) {
         $_SESSION["saved_locations"][] = $location;
     }
@@ -83,7 +91,7 @@ header("Content-disposition: attachment; filename = fireactivity.csv"); // Trigg
 */
 
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search" && $message === "") {
+if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search" && $message === "" && $location_message === "") {
     $url = "http://127.0.0.1:5000/api/fire-search";
 
     $data = json_encode([
@@ -178,6 +186,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search" && $mess
 
                                 <input type="hidden" name="latitude" id="latitude">
                                 <input type="hidden" name="longitude" id="longitude">
+
+                                <p class="error-msg"><?php echo htmlspecialchars($location_message, ENT_QUOTES); ?></p>
 
                                 
                             </div>
