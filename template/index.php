@@ -138,8 +138,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "start_search" && $mess
     <body>
         <header>
             <div>
-                <h2>FIRMS</h2>
-                <h3>Fire Information for Resource Management System</h3>
+                <h2>Fire Activity Calendar</h2>
+                <h3>Harmonized MODIS and VIIRS Hot Spot Data</h3>
             </div>
         </header>
         <main class="content">
