@@ -19,9 +19,10 @@ header {
     display: flex;
     align-items: center;
     width: 100%;
+    color: white;
     padding: 1.25rem 0;
     border-radius: 0;
-    background: #fff;
+    background: #35231a;
 }
 
 header > div {
@@ -31,13 +32,11 @@ header > div {
 
 header h2 {
     margin-bottom: 0.25rem;
-    color: #275b43;
     font-size: clamp(1.4rem, 3vw, 1.8rem);
     letter-spacing: 0.04em;
 }
 
 header h3 {
-    color: #5b6b61;
     font-size: clamp(0.85rem, 2vw, 1rem);
     font-weight: 400;
     line-height: 1.5;
@@ -139,10 +138,10 @@ header h3 {
     margin: 0 0.2rem;
     place-items: center;
     padding: 0;
-    border: 1px solid #718078;
+    border: 1px solid #35231a;
     border-radius: 50%;
-    background: #f3f6f3;
-    color: #275b43;
+    background: #f3eeeb;
+    color: #35231a;
     cursor: help;
     font: inherit;
     font-size: 0.72rem;
@@ -152,7 +151,7 @@ header h3 {
 }
 
 .stat-tooltip:focus-visible {
-    outline: 3px solid rgb(39 91 67 / 25%);
+    outline: 3px solid rgb(53 35 26 / 30%);
     outline-offset: 2px;
 }
 
@@ -164,7 +163,7 @@ header h3 {
     width: min(16rem, calc(100vw - 3rem));
     padding: 0.65rem 0.75rem;
     border-radius: 0.4rem;
-    background: #1f2c25;
+    background: #35231a;
     color: #fff;
     font-size: 0.8rem;
     font-weight: 400;
@@ -221,7 +220,7 @@ header h3 {
 
 #view-map:checked ~ .tabs label[for="view-map"],
 #view-data:checked ~ .tabs label[for="view-data"] {
-    border-bottom-color: #d96b35;
+    border-bottom-color: #35231a;
     color: #275b43;
 }
 
@@ -289,7 +288,7 @@ header h3 {
     padding: 0.65rem 1rem;
     border: 0;
     border-radius: 0.4rem;
-    background: #d96b35;
+    background: #35231a;
     color: #fff;
     cursor: pointer;
     font: inherit;
@@ -298,11 +297,11 @@ header h3 {
 }
 
 .search-submit:hover {
-    background: #bf5728;
+    background: #281a13;
 }
 
 .search-submit:focus-visible {
-    outline: 3px solid rgb(217 107 53 / 30%);
+    outline: 3px solid rgb(53 35 26 / 30%);
     outline-offset: 2px;
 }
 
@@ -398,7 +397,7 @@ header h3 {
 
 #location-search:checked ~ .location-tabs label[for="location-search"],
 #location-saved:checked ~ .location-tabs label[for="location-saved"] {
-    border-bottom-color: #d96b35;
+    border-bottom-color: #35231a;
     color: #275b43;
     font-weight: 600;
 }
@@ -542,49 +541,38 @@ header h3 {
     background: #f3f6f3;
 }
 
+.saved-location-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.75rem;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
 .saved-location-option {
-    flex: 1;
+    width: 100%;
     min-width: 0;
     overflow-wrap: anywhere;
     text-align: left;
 }
 
-.saved-location-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    min-width: 0;
-}
-
 .location-panel .remove-saved-location {
     display: grid;
-    flex: 0 0 2rem;
-    width: 2rem;
-    min-width: 2rem;
-    min-height: 2rem;
+    width: 2.75rem;
+    min-height: 2.75rem;
     place-items: center;
     padding: 0;
-    border: 1px solid #dce5dd;
-    border-radius: 50%;
-    background: #f3f6f3;
-    color: #bf5728;
-    font-size: 1rem;
+    background: #35231a;
+    font-size: 1.15rem;
     line-height: 1;
 }
 
 .location-panel .remove-saved-location:hover {
-    background: #bf5728;
-    color: #fff;
-}
-
-.remove-saved-location:focus-visible {
-    outline: 3px solid rgb(217 107 53 / 30%);
-    outline-offset: 2px;
+    background: #281a13;
 }
 
 .error-msg{
     margin-top: 1em;
-    color:#bf5728;
+    color:#281a13;
     font-style: bold;
 }
 

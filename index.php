@@ -74,6 +74,14 @@ if (isset($_POST["use_saved_location"]) && in_array($_POST["use_saved_location"]
     $location = $_POST["use_saved_location"];
 }
 
+/* Download CSV file
+$filepath = __DIR__."/nasa data/.csv";
+
+header("Content type: text/csv"); // Tells html what type of web page it is -> not to display it to user
+header("Content-disposition: attachment; filename = fireactivity.csv"); // Triggers download
+
+/*
+
 
 /*
 // Connect to Flask
@@ -128,8 +136,8 @@ if($httpCode === 200 && $response){
     <body>
         <header>
             <div>
-                <h2>FIRMS</h2>
-                <h3>Fire Information for Resource Management System</h3>
+                <h2>Fire Activity Calendar</h2>
+                <h3>Harmonized MODIS and VIIRS Hot Spot Data</h3>
             </div>
         </header>
         <main class="content">
@@ -264,7 +272,7 @@ if($httpCode === 200 && $response){
                             </button>:
                             <?php echo $anomaly?>
                         </h4>
-                        <button class="csv-download-button" type="button">Download CSV</button>
+                        <button class="csv-download-button" type="button" action="csv-download">Download CSV</button>
                     </div>
                 </div>
             </section>
