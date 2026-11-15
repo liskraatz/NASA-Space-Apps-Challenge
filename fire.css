@@ -193,7 +193,7 @@ header h3 {
 }
 
 .search-submit {
-    align-self: center;
+    justify-self: start;
     min-height: 2.75rem;
     padding: 0.65rem 1rem;
     border: 0;
@@ -404,6 +404,17 @@ header h3 {
     color: #1d4834;
 }
 
+.current-location-link:focus-visible {
+    border-radius: 0.2rem;
+    outline: 3px solid rgb(39 91 67 / 25%);
+    outline-offset: 2px;
+}
+
+.location-status {
+    color: #53665a;
+    font-size: 0.85rem;
+}
+
 .current-location-link svg {
     width: 1rem;
     height: 1rem;
@@ -446,6 +457,12 @@ header h3 {
     width: 1rem;
     height: 1rem;
     accent-color: #275b43;
+}
+
+.error-msg{
+    margin-top: 1em;
+    color:#bf5728;
+    font-style: bold;
 }
 
 @media (max-width: 760px) {

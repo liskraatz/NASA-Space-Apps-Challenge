@@ -1,38 +1,50 @@
 <?php
 
-// Get user input
-$location = filter_input(INPUT_POST, "location") ?? $current_location;
-
-$start_year = filter_input(INPUT_POST, "year_start", FILTER_VALIDATE_INT);
-$end_year = filter_input(INPUT_POST, "year_end", FILTER_VALIDATE_INT);
-
-$month = filter_input(INPUT_POST, "month") ?? 1;
-
 // Get current year
 $now = new DateTime();
 $current_year = $now->format("Y");
 
-// Get current location 
+// Get user input
+$location = filter_input(INPUT_POST, "location");
+$latitude = filter_input(INPUT_POST, "latitude", FILTER_VALIDATE_FLOAT);
+$longitude = filter_input(INPUT_POST, "longitude", FILTER_VALIDATE_FLOAT);
+
+$start_year = filter_input(INPUT_POST, "year_start", FILTER_VALIDATE_INT);
+$end_year_input = filter_input(INPUT_POST, "year_end");
+$end_year = ($end_year_input === null || $end_year_input === "") ? null : filter_var($end_year_input, FILTER_VALIDATE_INT);
+
+$month = filter_input(INPUT_POST, "month") ?? 1;
+
+$message = "";
+
+// Statistics
+$high_month = "";
+$low_month = "";
+$high_year = "";
+$low_year = "";
+$low_diff = "";
+$high_diff = "";
+$year_average = "";
+$anomaly = "";
 
 
-// Error Message
-function ErrorMsg($error){
-    $message = $error;
+// Get current location
+
+
+// Validate user input only after the form is submitted.
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    if ($start_year === null || $start_year === false) {
+        $message = "Start year cannot be empty.";
+    } elseif ($start_year < 2000 || $start_year > $current_year) {
+        $message = "Data is only available from 2000 to " . $current_year . ".";
+    } elseif ($end_year === false) {
+        $message = "End year must be a valid year.";
+    } elseif ($end_year !== null && ($end_year < 2000 || $end_year > $current_year)) {
+        $message = "Data is only available from 2000 to " . $current_year . ".";
+    } elseif ($end_year !== null && $start_year > $end_year) {
+        $message = "Start year cannot be after end year.";
+    }
 }
-
-// Validate user input
-if($start_year = ""){
-    ErrorMsg("Start year cannot be empty.");
-}elseif($start_year < 2000 || $start_year > 2026){
-    ErrorMsg("Data is only available from 2000 to 2026.");
-}elseif($start_year > $end_year){
-    ErrorMsg("Start year cannot be after end year.");
-}else{
-    ErrorMsg("");
-}
-
-
-
 
 
 
@@ -46,7 +58,7 @@ if($start_year = ""){
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Fire Activity Data | FIRMS</title>
-        <link rel="stylesheet" href="map.css">
+        <link rel="stylesheet" href="fire.css">
     </head>
     <body>
         <header>
@@ -56,7 +68,7 @@ if($start_year = ""){
             </div>
         </header>
         <main class="content">
-            <form class="filter-container" method="post" action="">
+            <form class="filter-container" method="post" action="" id="form">
                 <fieldset class="filter location-filter">
                     <legend>Location</legend>
                     <input class="location-tab-input" type="radio" id="location-search" name="location_mode" value="search" checked>
@@ -71,22 +83,30 @@ if($start_year = ""){
                         <div class="location-panel search-panel">
                             <label for="location-search-input">Search for a location</label>
                             <div class="location-search-row">
-                                <input id="location-search-input" name="location" type="text" placeholder="City, region, or coordinates">
+                                <input id="location-search-input" name="location" type="text" placeholder="City, region, or coordinates" value="<?php echo $location ?>">
                             </div>
                             <div>
-                                <button class="current-location-link" type="submit" name="action" value="use_current_location">
-                                <svg aria-hidden="true" viewBox="0 0 24 24">
-                                    <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z"></path>
-                                    <circle cx="12" cy="9" r="2.25"></circle>
-                                </svg>
-                                Use current location
-                                </button>
+                                <a class="current-location-link" href="#current-location" id="current-location-link">
+                                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                                        <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z"></path>
+                                        <circle cx="12" cy="9" r="2.25"></circle>
+                                    </svg>
+                                    Use current location
+                                </a>
+                                <p class="location-status" id="location-status" aria-live="polite"></p>
+
+                                <input type="hidden" name="latitude" id="latitude">
+                                <input type="hidden" name="longitude" id="longitude">
+
+                                <!---
                                 <button class="save-location-button" type="submit" name="action" value="save_location">
                                 <svg aria-hidden="true" viewBox="0 0 24 24">
                                     <path d="M6 3.75h12a1 1 0 0 1 1 1v15l-7-4.5-7 4.5v-15a1 1 0 0 1 1-1Z"></path>
                                 </svg>
                                 <span class="visually-hidden">Save location</span>
                                 </button>
+                                -->
+
                             </div>
                         </div>
                     </div>
@@ -95,8 +115,8 @@ if($start_year = ""){
                     <div class="filter year-range-filter">
                         <span class="filter-label">Year</span>
                         <div class="year-range-inputs">
-                            <input id="year-from" name="year_from" type="number" step="1" placeholder="From" min="2000" max="2026">
-                            <input id="year-to" name="year_to" type="number" step="1" placeholder="To" min="2000" max="2026">
+                            <input id="year-from" name="year_start" type="number" step="1" placeholder="From" value="<?php echo $start_year ?>">
+                            <input id="year-to" name="year_end" type="number" step="1" placeholder="To (Optional)" min="2001" max="2026" value="<?php echo $end_year ?>">
                         </div>
                     </div>
                     <div class="filter">
@@ -117,10 +137,14 @@ if($start_year = ""){
                             <option value="12">December</option>
                         </select>
                     </div>
-                    <p><?php $message ?></p>
+                    <div>
+                        <button class="search-submit" type="submit" name="action" id="submit" value="start_search">Start search</button>
+                        <p class="error-msg"><?php echo htmlspecialchars($message, ENT_QUOTES); ?></p>
+                    </div>
                 </div>
-                <button class="search-submit" type="submit" name="action" value="start_search">Start search</button>
             </form>
+
+
             <section class="result-container">
                 <input class="view-tab-input" type="radio" id="view-map" name="view_mode" value="map" checked>
                 <input class="view-tab-input" type="radio" id="view-data" name="view_mode" value="data">
@@ -135,12 +159,59 @@ if($start_year = ""){
                         <p>Fire activity map will appear here</p>
                     </div>
                     <div class="panel data-panel">
-                        <p>Statistics</p>
+                        <h4>Highest fire activity month: <?php echo $high_month?></h4>
+                        <h4>Lowest fire activity month: <?php echo $low_month?></h4>
+                        <h4>Highest fire activity year: <?php echo $high_year?></h4>
+                        <h4>Lowest fire activity year: <?php echo $low_year?></h4>
+                        <h4>Highest fire activity difference: <?php echo $high_diff?></h4>
+                        <h4>Lowest fire activity difference: <?php echo $low_diff?></h4>
+                        <h4>Year fire activity average: <?php echo $year_average?></h4>
+                        <h4>Sensor Anomaly: <?php echo $anomaly?> </h4>
                     </div>
                 </div>
             </section>
-
-            
         </main>
+
+
+        <script>
+
+            // Get current location
+            const form = document.getElementById("form");
+            const submitBtn = document.getElementById("submit");
+            const locationLink = document.getElementById("current-location-link");
+            const latitudeInput = document.getElementById("latitude");
+            const longitudeInput = document.getElementById("longitude");
+            const locationStatus = document.getElementById("location-status");
+
+            locationLink.addEventListener("click", function(event) {
+                event.preventDefault();
+
+                if (!navigator.geolocation) {
+                    locationStatus.textContent = "Location is not supported by this browser.";
+                    return;
+                }
+
+                locationStatus.textContent = "Requesting your location...";
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        latitudeInput.value = position.coords.latitude;
+                        longitudeInput.value = position.coords.longitude;
+                        form.requestSubmit(submitBtn);
+                    },
+                    function(error) {
+                        if (error.code === error.PERMISSION_DENIED) {
+                            locationStatus.textContent = "Location permission was denied.";
+                        } else if (error.code === error.TIMEOUT) {
+                            locationStatus.textContent = "The location request timed out. Please try again.";
+                        } else {
+                            locationStatus.textContent = "Your location could not be determined.";
+                        }
+                    },
+                    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+                );
+            });
+        </script>
+
+
     </body>
 </html>
