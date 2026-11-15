@@ -4,6 +4,8 @@
 $now = new DateTime();
 $current_year = $now->format("Y");
 
+$action = filter_input(INPUT_POST, 'action');
+
 // Get user input
 $location = filter_input(INPUT_POST, "location");
 $latitude = filter_input(INPUT_POST, "latitude", FILTER_VALIDATE_FLOAT);
@@ -16,6 +18,7 @@ $end_year = ($end_year_input === null || $end_year_input === "") ? null : filter
 $month = filter_input(INPUT_POST, "month") ?? 1;
 
 $message = "";
+
 
 // Statistics
 $high_month = "";
@@ -44,6 +47,55 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } elseif ($end_year !== null && $start_year > $end_year) {
         $message = "Start year cannot be after end year.";
     }
+}
+
+// Save location
+if($action === 'save_location'){
+    $saved_location = [];
+
+    if(empty($saved_location)){
+        $message = "No saved locations yet. Save a location from the Search tab to see it here.";
+    }else{
+        $message = "";
+        $saved_location = $location;
+    }
+}
+
+
+
+// Connect to Flask
+$url = "http://";
+
+$data = json_encode([
+    'location' => $location,
+    'latitude' => $latitude,
+    'longitude' => $longitude,
+    'month' => $month,
+    'start-year' => $start_year,
+    'end-year' => $end_year
+]);
+
+// Send request with cURL
+$curl = curl_init($url);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($curl, CURLOPT_PORT, true);
+curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+curl_setopt($curl, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json', 
+    'Content-Length: '.strlen($data)
+]);
+
+// Execute request and close connection
+$response = curl_exec($curl);
+$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+// Closes automatically -> curl_close() is deprecated
+
+// Decode and use json response from python
+if($httpCode === 200 && $response){
+    $result = json_decode($response, true);
+    echo "Python response: ".htmlspecialchars($result['processed_text']);
+}else{
+    echo "Error connecting to Flask. (HTTP Status: $httpCode)";
 }
 
 
@@ -84,6 +136,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <label for="location-search-input">Search for a location</label>
                             <div class="location-search-row">
                                 <input id="location-search-input" name="location" type="text" placeholder="City, region, or coordinates" value="<?php echo $location ?>">
+                                <button class="save-location-button" type="submit" name="action" value="save_location">
+                                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                                        <path d="M6 3.75h12a1 1 0 0 1 1 1v15l-7-4.5-7 4.5v-15a1 1 0 0 1 1-1Z"></path>
+                                    </svg>
+                                    <span class="visually-hidden">Save location</span>
+                                </button>
                             </div>
                             <div>
                                 <a class="current-location-link" href="#current-location" id="current-location-link">
@@ -98,16 +156,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 <input type="hidden" name="latitude" id="latitude">
                                 <input type="hidden" name="longitude" id="longitude">
 
-                                <!---
+                                
                                 <button class="save-location-button" type="submit" name="action" value="save_location">
                                 <svg aria-hidden="true" viewBox="0 0 24 24">
                                     <path d="M6 3.75h12a1 1 0 0 1 1 1v15l-7-4.5-7 4.5v-15a1 1 0 0 1 1-1Z"></path>
                                 </svg>
                                 <span class="visually-hidden">Save location</span>
                                 </button>
-                                -->
 
+                                
                             </div>
+                        </div>
+                        <div class="location-panel saved-panel">
+                            <span class="filter-label" id="saved-location-label">Saved locations</span>
+                            <div class="saved-location-list" id="saved-location-list" role="group" aria-labelledby="saved-location-label"></div>
+                            <p class="saved-hint"><?php echo $message;
+                                foreach($saved_location as saved){
+                                    echo $saved_location."<br>;
+                                }
+
+                            ?></p>
                         </div>
                     </div>
                 </fieldset>
@@ -167,6 +235,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <h4>Lowest fire activity difference: <?php echo $low_diff?></h4>
                         <h4>Year fire activity average: <?php echo $year_average?></h4>
                         <h4>Sensor Anomaly: <?php echo $anomaly?> </h4>
+                        <button class="csv-download-button" type="button">Download CSV</button>
                     </div>
                 </div>
             </section>

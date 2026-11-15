@@ -113,6 +113,40 @@ header h3 {
     background: rgb(255 255 255 / 85%);
 }
 
+.data-panel {
+    padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.data-panel h4 {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5ebe6;
+    color: #35483c;
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+.csv-download-button {
+    min-height: 2.75rem;
+    margin-top: 1rem;
+    padding: 0.65rem 1rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: #275b43;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+}
+
+.csv-download-button:hover {
+    background: #1d4834;
+}
+
+.csv-download-button:focus-visible {
+    outline: 3px solid rgb(39 91 67 / 25%);
+    outline-offset: 2px;
+}
+
 #view-map:checked ~ .panels .map-panel,
 #view-data:checked ~ .panels .data-panel {
     display: block;
@@ -441,6 +475,18 @@ header h3 {
     gap: 0.5rem;
     max-height: 7rem;
     overflow-y: auto;
+}
+
+.saved-hint {
+    display: none;
+    padding: 0.65rem 0.75rem;
+    border: 1px dashed #cbd7ce;
+    border-radius: 0.4rem;
+    background: #f3f6f3;
+}
+
+.saved-location-list:empty + .saved-hint {
+    display: block;
 }
 
 .saved-location-list label {
