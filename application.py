@@ -14,7 +14,7 @@ EARTH_RADIUS_KM = 6371.0088
 MIN_YEAR = 2003
 RADII = (25, 50, 100, 250, 500)
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 
 class SearchInputError(Exception):
